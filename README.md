@@ -12,7 +12,7 @@ go build
 ```
 
 In order for the tool to access the Github respositories a personal access token is requried. Details
-of generating these tokens can be found it the Github [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You will need a "Classic" PAT.
+of generating these tokens can be found it the Github [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You will need a "Classic" PAT with the `repo` permissions enabled.
 
 The enviroment variable `GH_TOKEN` must be present when running the tool.
 
