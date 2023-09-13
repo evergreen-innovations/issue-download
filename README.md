@@ -12,7 +12,7 @@ go build
 ```
 
 In order for the tool to access the Github respositories a personal access token is requried. Details
-of generating these tokens can be found it the Github [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
+of generating these tokens can be found it the Github [documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). You will need a "Classic" PAT.
 
 The enviroment variable `GH_TOKEN` must be present when running the tool.
 
@@ -23,7 +23,7 @@ Once the tool is build it can be run with
 
 ```
 ./issue-download owner repo
-``
+```
 
 For example, to download the issues for this repository (assuming you have a personal access token with permissions) would be
 
