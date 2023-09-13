@@ -39,7 +39,6 @@ func (s *Service) DownloadImages(issues []issue.Issue, pathPrefix string) error 
 
 func (s *Service) downloadImages(body string, pathPrefix string) error {
 	for _, asset := range extractImages(body) {
-		fmt.Println("asset:", asset)
 		if err := s.downloadAsset(extractAssetURL(asset), pathPrefix); err != nil {
 			return fmt.Errorf("downloading asset for %s: %w", asset, err)
 		}
