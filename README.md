@@ -30,3 +30,23 @@ For example, to download the issues for this repository (assuming you have a per
 ```
 ./issue-download evergreen-innovations issue-download
 ```
+
+## Output
+A directory will be created wherever the issue-download command was run. The directory structure is
+
+```
+- owner
+  - repo
+    * issue_1.txt
+    * issue_2.txt
+    * ...
+    * issue_N.txt
+    - assets
+        - GROUP_ID_OF_UPLOADED_ASSET
+            * UUID_OF_ASSET1.png
+            * UUID_OF_ASSET2.png
+```
+
+The `assets` directory contains any images that have been uploaded. The sub-directory structure and file naming follows the path of the uploaded image to avoid any ambiguity.
+
+At present, only png images will have the file extension appended. Other types of images will be downloaded and stored but the application to open them will need to be manually selected.
