@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -53,7 +54,14 @@ func (s *Service) downloadAsset(url, pathPrefix string) error {
 		return fmt.Errorf("creating request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+s.token)
+	authNeeded, err := requiresAuth(url)
+	if err != nil {
+		return fmt.Errorf("determining if auth required for image download: %w", err)
+	}
+
+	if authNeeded {
+		req.Header.Set("Authorization", "Bearer "+s.token)
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -81,9 +89,19 @@ func (s *Service) downloadAsset(url, pathPrefix string) error {
 		extension = ".png"
 	}
 
-	urlPath := strings.TrimPrefix(url, "https://github.com")
+	urlPath, err := assetPath(url)
+	if err != nil {
+		return fmt.Errorf("processing %s: %w", url, err)
+	}
+
+	urlPath = strings.TrimPrefix(urlPath, "/"+pathPrefix)
+
 	filename := filepath.Base(urlPath) + extension
 	dirname := filepath.Dir(urlPath)
+
+	if !strings.Contains(dirname, "assets") {
+		dirname = filepath.Join("assets", dirname)
+	}
 
 	if pathPrefix == "" {
 		pathPrefix = "."
@@ -124,4 +142,31 @@ func extractAssetURL(str string) string {
 	}
 
 	return matches[1]
+}
+
+// github haved changed the way that authorization is required
+// for image upload. There is an auth failure if we try to
+// get images from the older endpoints and provide an authorization field.
+// https://github.blog/changelog/2023-05-09-more-secure-private-attachments/
+func requiresAuth(ghURL string) (bool, error) {
+	u, err := url.Parse(ghURL)
+	if err != nil {
+		return false, fmt.Errorf("parsing url: %w", err)
+	}
+
+	switch u.Hostname() {
+	case "user-images.githubusercontent.com":
+		return false, nil
+	default:
+		return true, nil
+	}
+}
+
+func assetPath(assetURL string) (string, error) {
+	u, err := url.Parse(assetURL)
+	if err != nil {
+		return "", fmt.Errorf("parsing url: %w", err)
+	}
+
+	return u.Path, nil
 }

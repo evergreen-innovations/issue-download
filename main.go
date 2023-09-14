@@ -62,13 +62,13 @@ func main() {
 		return
 	}
 
-	if err := assetService.DownloadImages(issues, ""); err != nil {
+	outputdir := filepath.Join(owner, repo)
+	if err := assetService.DownloadImages(issues, outputdir); err != nil {
 		mainErr = err
 		return
 	}
 
 	// TODO add prefix directory
-	outputdir := filepath.Join(owner, repo)
 	if err := os.MkdirAll(filepath.Join(owner, repo), 0o755); err != nil {
 		mainErr = fmt.Errorf("making output directory: %w", err)
 		return
