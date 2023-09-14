@@ -36,7 +36,7 @@ func TextFile(issues []issue.Issue, pathPrefix string) error {
 			w.WriteString(comment.Body + "\n\n")
 		}
 
-		if w.Error() != nil {
+		if err := w.Error(); err != nil {
 			f.Close()
 			return fmt.Errorf("writing output file for issue %d: %w", issue.Number, err)
 		}

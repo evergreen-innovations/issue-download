@@ -74,7 +74,7 @@ func main() {
 		return
 	}
 
-	if err := output.TextFile(issues, outputdir); err != nil {
+	if err := output.Markdown(issues, outputdir); err != nil {
 		mainErr = fmt.Errorf("writing output: %w", err)
 		return
 	}
