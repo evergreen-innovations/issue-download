@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-
-	"github.com/google/go-github/v55/github"
-
+	"mab/issue-download/internal/asset"
 	"mab/issue-download/internal/issue"
 	"mab/issue-download/internal/output"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/google/go-github/v55/github"
 )
 
 func main() {
@@ -48,10 +50,10 @@ func main() {
 
 	issueService := issue.NewService(client.Issues)
 
-	/*httpClient := &http.Client{
+	httpClient := &http.Client{
 		Timeout: 5 * time.Second,
 	}
-	assetService := asset.NewService(httpClient, GH_TOKEN)*/
+	assetService := asset.NewService(httpClient, GH_TOKEN)
 
 	issues, err := issueService.GetIssues(ctx, owner, repo)
 	if err != nil {
@@ -59,20 +61,22 @@ func main() {
 		return
 	}
 
-	outputdir := filepath.Join(owner, repo)
-	/*if err := assetService.DownloadImages(issues, outputdir); err != nil {
+	outputdir := filepath.Join("output", owner, repo)
+	pathTrim := filepath.Join(owner, repo) // asset path can often contain this
+	if err := assetService.DownloadImages(issues, outputdir, pathTrim); err != nil {
 		mainErr = err
 		return
-	}*/
+	}
 
 	// TODO add prefix directory
-	if err := os.MkdirAll(filepath.Join(owner, repo), 0o755); err != nil {
+	if err := os.MkdirAll(outputdir, 0o755); err != nil {
 		mainErr = fmt.Errorf("making output directory: %w", err)
 		return
 	}
 
-	if err := output.Markdown(issues, outputdir); err != nil {
+	if err := output.Markdown(issues, outputdir, owner, repo); err != nil {
 		mainErr = fmt.Errorf("writing output: %w", err)
 		return
 	}
+
 }

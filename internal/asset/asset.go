@@ -22,14 +22,14 @@ func NewService(client *http.Client, githubToken string) *Service {
 	return &Service{client: client, token: githubToken}
 }
 
-func (s *Service) DownloadImages(issues []issue.Issue, pathPrefix string) error {
+func (s *Service) DownloadImages(issues []issue.Issue, pathPrefix string, pathTrim string) error {
 	for _, issue := range issues {
-		if err := s.downloadImages(issue.Body, pathPrefix); err != nil {
+		if err := s.downloadImages(issue.Body, pathPrefix, pathTrim); err != nil {
 			return fmt.Errorf("issue %d: %w", issue.Number, err)
 		}
 
 		for _, comment := range issue.Comments {
-			if err := s.downloadImages(comment.Body, pathPrefix); err != nil {
+			if err := s.downloadImages(comment.Body, pathPrefix, pathTrim); err != nil {
 				return fmt.Errorf("issue %d: %w", issue.Number, err)
 			}
 		}
@@ -38,9 +38,9 @@ func (s *Service) DownloadImages(issues []issue.Issue, pathPrefix string) error 
 	return nil
 }
 
-func (s *Service) downloadImages(body string, pathPrefix string) error {
+func (s *Service) downloadImages(body string, pathPrefix string, pathTrim string) error {
 	for _, asset := range extractImages(body) {
-		if err := s.downloadAsset(extractAssetURL(asset), pathPrefix); err != nil {
+		if err := s.downloadAsset(extractAssetURL(asset), pathPrefix, pathTrim); err != nil {
 			return fmt.Errorf("downloading asset for %s: %w", asset, err)
 		}
 	}
@@ -48,7 +48,7 @@ func (s *Service) downloadImages(body string, pathPrefix string) error {
 	return nil
 }
 
-func (s *Service) downloadAsset(url, pathPrefix string) error {
+func (s *Service) downloadAsset(url, pathPrefix string, pathTrim string) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
@@ -80,23 +80,29 @@ func (s *Service) downloadAsset(url, pathPrefix string) error {
 			// Don't want to print reams of html
 			body.Reset()
 		}
-		return fmt.Errorf("got status code: %d, %s", resp.StatusCode, body.String())
+		fmt.Printf("Warning got status code: %d, %s\n", resp.StatusCode, body.String())
+		return nil //fmt.Errorf("got status code: %d, %s", resp.StatusCode, body.String())
 	}
 
-	extension := ""
-	switch resp.Header.Get("Content-Type") {
-	case "image/png":
-		extension = ".png"
-	}
+	//extension := ""
+
+	//switch resp.Header.Get("Content-Type") {
+	//case "image/png":
+	//	extension = ".png"
+	//}
 
 	urlPath, err := assetPath(url)
 	if err != nil {
 		return fmt.Errorf("processing %s: %w", url, err)
 	}
 
-	urlPath = strings.TrimPrefix(urlPath, "/"+pathPrefix)
+	urlPath = strings.TrimPrefix(urlPath, "/"+pathTrim)
 
-	filename := filepath.Base(urlPath) + extension
+	filename := filepath.Base(urlPath)
+	// sometimes the extension is already present (e.g. .png)
+	/*if !strings.Contains(filename, extension) {
+		filename = filename + extension
+	}*/
 	dirname := filepath.Dir(urlPath)
 
 	if !strings.Contains(dirname, "assets") {

@@ -3,7 +3,6 @@ package issue
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/google/go-github/v55/github"
@@ -19,6 +18,7 @@ type Issue struct {
 }
 
 type Comment struct {
+	IssueURL  string
 	CreatedAt time.Time
 	Body      string
 	User      string
@@ -48,50 +48,39 @@ func (s *Service) GetIssues(ctx context.Context, owner string, repo string) ([]I
 		return nil, fmt.Errorf("error getting issues: %w", err)
 	}
 
-	comments, _, err := s.client.ListComments(ctx, owner, repo, 0, &github.IssueListCommentsOptions{
-		ListOptions: github.ListOptions{
-			PerPage: 100,
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error getting replies: %w", err)
-	}
-
-	// The only direct link between issue and comments is the issue URL. Use this
-	// as the map key to combine the comments to the issue.
+	// NOTE by JS: This could likely be much simpler (no need for combined if we obtain comments for each issue). To be cleaned up.
 	combined := make(map[string]Issue, len(issues))
 
 	for _, issue := range issues {
+
+		// get comments for EACH issue; otherwise, limit of 100 max comments is hit very quickly for larger project
+		commentsIssue, _, err := s.client.ListComments(ctx, owner, repo, issue.GetNumber(), &github.IssueListCommentsOptions{
+			ListOptions: github.ListOptions{
+				PerPage: 100,
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error getting replies: %w", err)
+		}
+
+		var comments []Comment
+		for _, commentIssue := range commentsIssue {
+			comments = append(comments, Comment{
+				IssueURL:  commentIssue.GetIssueURL(),
+				CreatedAt: commentIssue.GetCreatedAt().Time,
+				Body:      commentIssue.GetBody(),
+				User:      commentIssue.GetUser().GetLogin(),
+			})
+		}
+
 		combined[issue.GetURL()] = Issue{
 			Title:     issue.GetTitle(),
 			Body:      issue.GetBody(),
 			User:      issue.GetUser().GetLogin(),
 			Number:    issue.GetNumber(),
-			Comments:  make([]Comment, 0, len(comments)),
+			Comments:  comments,
 			CreatedAt: issue.GetCreatedAt().Time,
 		}
-	}
-
-	for _, comment := range comments {
-		key := comment.GetIssueURL()
-		issue, ok := combined[key]
-		if !ok {
-			fmt.Println("skipping:", key)
-			continue
-		}
-
-		issue.Comments = append(issue.Comments, Comment{
-			CreatedAt: comment.GetCreatedAt().Time,
-			Body:      comment.GetBody(),
-			User:      comment.GetUser().GetLogin(),
-		})
-
-		// Keep the comments in order
-		sort.Slice(issue.Comments, func(i, j int) bool {
-			return issue.Comments[i].CreatedAt.Before(issue.Comments[j].CreatedAt)
-		})
-
-		combined[key] = issue
 	}
 
 	out := make([]Issue, 0, len(combined))
