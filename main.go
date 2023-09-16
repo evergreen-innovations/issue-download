@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/google/go-github/v55/github"
 
-	"mab/issue-download/internal/asset"
 	"mab/issue-download/internal/issue"
 	"mab/issue-download/internal/output"
 )
@@ -51,10 +48,10 @@ func main() {
 
 	issueService := issue.NewService(client.Issues)
 
-	httpClient := &http.Client{
+	/*httpClient := &http.Client{
 		Timeout: 5 * time.Second,
 	}
-	assetService := asset.NewService(httpClient, GH_TOKEN)
+	assetService := asset.NewService(httpClient, GH_TOKEN)*/
 
 	issues, err := issueService.GetIssues(ctx, owner, repo)
 	if err != nil {
@@ -63,10 +60,10 @@ func main() {
 	}
 
 	outputdir := filepath.Join(owner, repo)
-	if err := assetService.DownloadImages(issues, outputdir); err != nil {
+	/*if err := assetService.DownloadImages(issues, outputdir); err != nil {
 		mainErr = err
 		return
-	}
+	}*/
 
 	// TODO add prefix directory
 	if err := os.MkdirAll(filepath.Join(owner, repo), 0o755); err != nil {
