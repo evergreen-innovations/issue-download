@@ -1,10 +1,7 @@
 package output
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,9 +35,6 @@ func Markdown(issues []issue.Issue, pathPrefix string, owner string, repo string
 			w.WriteString(fmt.Sprintf("# REPLY %s %s ", comment.User, comment.CreatedAt.Format(time.RFC3339)) + "\n")
 			w.WriteString("***\n")
 			w.WriteString(comment.Body + "\n\n")
-			//if issue.Number == 8 {
-			//	println(comment.Body)
-			//}
 		}
 
 		if err := w.Error(); err != nil {
@@ -61,22 +55,17 @@ func Markdown(issues []issue.Issue, pathPrefix string, owner string, repo string
 
 		f.Close()
 
-		// read .md file to create HTML
-		md, err := ioutil.ReadFile(mdFileName)
-		if err != nil {
-			log.Fatal(err)
+		// replace GitHub URL with local path (there are several variations)
+		// There is probably a way to do this with regular expressions....
+		replace := []string{"https://user-images.githubusercontent.com/", fmt.Sprintf("https://github.com/%s/%s/assets/", owner, repo)}
+		replacement := "./assets/"
+
+		md := buf.String()
+		for _, r := range replace {
+			md = strings.ReplaceAll(md, r, replacement)
 		}
 
-		// replace GitHub URL with local path (there are several variations)
-		old1 := "https://user-images.githubusercontent.com/"
-		old2 := fmt.Sprintf("https://github.com/%s/%s/assets/", owner, repo)
-
-		new := "./assets/"
-
-		md = bytes.Replace([]byte(md), []byte(old1), []byte(new), -1)
-		md = bytes.Replace([]byte(md), []byte(old2), []byte(new), -1)
-
-		html := mdToHTML(md)
+		html := mdToHTML([]byte(md))
 
 		htmlFileName := filepath.Join(pathPrefix, fmt.Sprintf("issue_%d.html", issue.Number))
 		htmlF, err := os.Create(htmlFileName)
