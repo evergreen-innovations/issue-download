@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"mab/issue-download/internal/issue"
+	"github.com/evergreen-innovations/issue-download/internal/issue"
 )
 
 type Service struct {

@@ -10,8 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"mab/issue-download/internal/issue"
-
+	"github.com/evergreen-innovations/issue-download/internal/issue"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"

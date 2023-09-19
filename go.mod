@@ -1,4 +1,4 @@
-module mab/issue-download
+module github.com/evergreen-innovations/issue-download
 
 go 1.20
 

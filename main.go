@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mab/issue-download/internal/asset"
-	"mab/issue-download/internal/issue"
-	"mab/issue-download/internal/output"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/google/go-github/v55/github"
+
+	"github.com/evergreen-innovations/issue-download/internal/asset"
+	"github.com/evergreen-innovations/issue-download/internal/issue"
+	"github.com/evergreen-innovations/issue-download/internal/output"
 )
 
 func main() {
@@ -78,5 +79,4 @@ func main() {
 		mainErr = fmt.Errorf("writing output: %w", err)
 		return
 	}
-
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"mab/issue-download/internal/issue"
+	"github.com/evergreen-innovations/issue-download/internal/issue"
 )
 
 func TextFile(issues []issue.Issue, pathPrefix string) error {
